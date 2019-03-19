@@ -1,9 +1,11 @@
 #include <glad/glad.h>
 #include <GLFW/glfw3.h>
+
 #include <iostream>
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/type_ptr.hpp>
+
 #include "stb_image.h"
 #include "shader.h"
 
@@ -130,6 +132,8 @@ int main() {
 	stbi_image_free(data);
 
 
+	shader.use();
+	shader.setInt("texture", 0);
 
 	// tell GLFW to call framebuffer size callback on resize
 	glfwSetFramebufferSizeCallback(w, framebuffer_size_callback);
@@ -144,7 +148,6 @@ int main() {
 		glClear(GL_COLOR_BUFFER_BIT);
 
 		/*        
-		
 		// bind textures on corresponding texture units
         glActiveTexture(GL_TEXTURE0);
         glBindTexture(GL_TEXTURE_2D, texture1);
@@ -152,14 +155,22 @@ int main() {
         glBindTexture(GL_TEXTURE_2D, texture2);
 		
 		*/
+		// create transformations
+		glm::mat4 transform = glm::mat4(1.0f); // make sure to initialize matrix to identity matrix first
+		transform = glm::translate(transform, glm::vec3(0.5f, -0.5f, 0.0f));
+		transform = glm::rotate(transform, (float)glfwGetTime(), glm::vec3(0.0f, 0.0f, 1.0f));
 
 		//2d box made of two triangles
 		shader.use();
+
+		// get matrix's uniform location and set matrix
+		unsigned int transformLoc = glGetUniformLocation(shader.ID, "transform");
+		glUniformMatrix4fv(transformLoc, 1, GL_FALSE, glm::value_ptr(transform));
 		// bind texture on texture units
 		glBindTexture(GL_TEXTURE_2D, texture);
 		glBindVertexArray(VAO);
 		glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
-		//glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
+		// glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
 		// glBindVertexArray(0); // no need to unbind it every time 
 
 		// swap the buffers and poll for input using glfw
