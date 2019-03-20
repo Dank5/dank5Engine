@@ -6,9 +6,10 @@
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/type_ptr.hpp>
 
+
 #include "stb_image.h"
 #include "shader.h"
-
+#include "camera.h"
 // consts used
 
 // settings
@@ -21,16 +22,10 @@ float deltaTime = 0.0f;
 float lastFrame = 0.0f;
 
 // camera
-glm::vec3 cameraPos = glm::vec3(0.0f, 0.0f, 3.0f);
-glm::vec3 cameraFront = glm::vec3(0.0f, 0.0f, -1.0f);
-glm::vec3 cameraUp = glm::vec3(0.0f, 1.0f, 0.0f);
-
+Camera camera(glm::vec3(0.0f, 0.0f, 3.0f));
+float lastX = _WIDTH / 2.0f;
+float lastY = _HEIGHT / 2.0f;
 bool firstMouse = true;
-float yaw = -90.0f;	// yaw is initialized to -90.0 degrees since a yaw of 0.0 results in a direction vector pointing to the right so we initially rotate a bit to the left.
-float pitch = 0.0f;
-float lastX = 800.0f / 2.0;
-float lastY = 600.0 / 2.0;
-float fov = 45.0f;
 
 void mouse_callback(GLFWwindow* window, double xpos, double ypos)
 {
@@ -42,42 +37,27 @@ void mouse_callback(GLFWwindow* window, double xpos, double ypos)
 	}
 
 	float xoffset = xpos - lastX;
-	float yoffset = lastY - ypos;
+	float yoffset = lastY - ypos; 
+
 	lastX = xpos;
 	lastY = ypos;
 
-	float sensitivity = 0.05;
-	xoffset *= sensitivity;
-	yoffset *= sensitivity;
+	camera.ProcessMouseMovement(xoffset, yoffset);
 
-	yaw = glm::mod(yaw + xoffset, 360.0f);
-	pitch += yoffset;
-
-	if (pitch > 89.0f)
-		pitch = 89.0f;
-	if (pitch < -89.0f)
-		pitch = -89.0f;
-
-	glm::vec3 front;
-	front.x = cos(glm::radians(yaw)) * cos(glm::radians(pitch));
-	front.y = sin(glm::radians(pitch));
-	front.z = sin(glm::radians(yaw)) * cos(glm::radians(pitch));
-	cameraFront = glm::normalize(front);
 }
 
 // function to process input, queries whether a key has been pressed and performs action accordingly
 void processInput(GLFWwindow* w) {
 	if (glfwGetKey(w, GLFW_KEY_ESCAPE) == GLFW_PRESS) glfwSetWindowShouldClose(w, true);
 
-	float cameraSpeed = 2.5 * deltaTime;
 	if (glfwGetKey(w, GLFW_KEY_W) == GLFW_PRESS)
-		cameraPos += cameraSpeed * cameraFront;
+		camera.ProcessKeyboard(FORWARD, deltaTime);
 	if (glfwGetKey(w, GLFW_KEY_S) == GLFW_PRESS)
-		cameraPos -= cameraSpeed * cameraFront;
+		camera.ProcessKeyboard(BACKWARD, deltaTime);
 	if (glfwGetKey(w, GLFW_KEY_A) == GLFW_PRESS)
-		cameraPos -= glm::normalize(glm::cross(cameraFront, cameraUp)) * cameraSpeed;
+		camera.ProcessKeyboard(LEFT, deltaTime);
 	if (glfwGetKey(w, GLFW_KEY_D) == GLFW_PRESS)
-		cameraPos += glm::normalize(glm::cross(cameraFront, cameraUp)) * cameraSpeed;
+		camera.ProcessKeyboard(RIGHT, deltaTime);
 }
 // function to change rendering window size on GLFW window resize
 void framebuffer_size_callback(GLFWwindow* w, int width, int height) {
@@ -297,10 +277,8 @@ int main() {
 		// perspective projection
 		// glm::ortho(0.0f, 800.0f, 0.0f, 600.0f, 0.1f, 100.0f); //orthographic
 
-		// set-up camera/view matrix
-		glm::mat4 view = glm::lookAt(cameraPos, cameraPos + cameraFront, cameraUp);
-
-		// use shader functions to set uniforms
+		// camera/view transformation
+		glm::mat4 view = camera.GetViewMatrix();
 		shader.setMat4("view", view);
 
 		for (unsigned int i = 0; i < 10; i++)
