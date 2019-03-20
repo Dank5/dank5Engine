@@ -1,2 +1,11 @@
 ﻿  test.cpp
+c:\users\lewis\desktop\gamedev\engine\dank5engine\test.cpp(39): warning C4244: '=': conversion from 'double' to 'float', possible loss of data
+c:\users\lewis\desktop\gamedev\engine\dank5engine\test.cpp(40): warning C4244: '=': conversion from 'double' to 'float', possible loss of data
+c:\users\lewis\desktop\gamedev\engine\dank5engine\test.cpp(44): warning C4244: 'initializing': conversion from 'double' to 'float', possible loss of data
+c:\users\lewis\desktop\gamedev\engine\dank5engine\test.cpp(45): warning C4244: 'initializing': conversion from 'double' to 'float', possible loss of data
+c:\users\lewis\desktop\gamedev\engine\dank5engine\test.cpp(46): warning C4244: '=': conversion from 'double' to 'float', possible loss of data
+c:\users\lewis\desktop\gamedev\engine\dank5engine\test.cpp(47): warning C4244: '=': conversion from 'double' to 'float', possible loss of data
+c:\users\lewis\desktop\gamedev\engine\dank5engine\test.cpp(49): warning C4305: 'initializing': truncation from 'double' to 'float'
+c:\users\lewis\desktop\gamedev\engine\dank5engine\test.cpp(72): warning C4244: 'initializing': conversion from 'double' to 'float', possible loss of data
+c:\users\lewis\desktop\gamedev\engine\dank5engine\test.cpp(270): warning C4244: 'initializing': conversion from 'double' to 'float', possible loss of data
   Dank5Engine.vcxproj -> C:\Users\Lewis\Desktop\GameDev\engine\Debug\Dank5Engine.exe

@@ -16,9 +16,68 @@
 const unsigned int _WIDTH = 800;
 const unsigned int _HEIGHT = 600;
 
+// time between current frame and last frame
+float deltaTime = 0.0f;	
+float lastFrame = 0.0f;
+
+// camera
+glm::vec3 cameraPos = glm::vec3(0.0f, 0.0f, 3.0f);
+glm::vec3 cameraFront = glm::vec3(0.0f, 0.0f, -1.0f);
+glm::vec3 cameraUp = glm::vec3(0.0f, 1.0f, 0.0f);
+
+bool firstMouse = true;
+float yaw = -90.0f;	// yaw is initialized to -90.0 degrees since a yaw of 0.0 results in a direction vector pointing to the right so we initially rotate a bit to the left.
+float pitch = 0.0f;
+float lastX = 800.0f / 2.0;
+float lastY = 600.0 / 2.0;
+float fov = 45.0f;
+
+void mouse_callback(GLFWwindow* window, double xpos, double ypos)
+{
+	if (firstMouse)
+	{
+		lastX = xpos;
+		lastY = ypos;
+		firstMouse = false;
+	}
+
+	float xoffset = xpos - lastX;
+	float yoffset = lastY - ypos;
+	lastX = xpos;
+	lastY = ypos;
+
+	float sensitivity = 0.05;
+	xoffset *= sensitivity;
+	yoffset *= sensitivity;
+
+	yaw = glm::mod(yaw + xoffset, 360.0f);
+	pitch += yoffset;
+
+	if (pitch > 89.0f)
+		pitch = 89.0f;
+	if (pitch < -89.0f)
+		pitch = -89.0f;
+
+	glm::vec3 front;
+	front.x = cos(glm::radians(yaw)) * cos(glm::radians(pitch));
+	front.y = sin(glm::radians(pitch));
+	front.z = sin(glm::radians(yaw)) * cos(glm::radians(pitch));
+	cameraFront = glm::normalize(front);
+}
+
 // function to process input, queries whether a key has been pressed and performs action accordingly
 void processInput(GLFWwindow* w) {
 	if (glfwGetKey(w, GLFW_KEY_ESCAPE) == GLFW_PRESS) glfwSetWindowShouldClose(w, true);
+
+	float cameraSpeed = 2.5 * deltaTime;
+	if (glfwGetKey(w, GLFW_KEY_W) == GLFW_PRESS)
+		cameraPos += cameraSpeed * cameraFront;
+	if (glfwGetKey(w, GLFW_KEY_S) == GLFW_PRESS)
+		cameraPos -= cameraSpeed * cameraFront;
+	if (glfwGetKey(w, GLFW_KEY_A) == GLFW_PRESS)
+		cameraPos -= glm::normalize(glm::cross(cameraFront, cameraUp)) * cameraSpeed;
+	if (glfwGetKey(w, GLFW_KEY_D) == GLFW_PRESS)
+		cameraPos += glm::normalize(glm::cross(cameraFront, cameraUp)) * cameraSpeed;
 }
 // function to change rendering window size on GLFW window resize
 void framebuffer_size_callback(GLFWwindow* w, int width, int height) {
@@ -47,6 +106,12 @@ int main() {
 
 	// make the window the context of the current thread
 	glfwMakeContextCurrent(w);
+	glfwSetCursorPosCallback(w, mouse_callback);
+	//glfwSetScrollCallback(window, scroll_callback);
+
+	// tell GLFW to capture our mouse
+	glfwSetInputMode(w, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
+
 	// initilise GLAD (handles function pointers for OpenGL)
 	if (!gladLoadGLLoader((GLADloadproc)glfwGetProcAddress)) {
 		std::cout << "Failed to initilise GLAD" << std::endl;
@@ -193,8 +258,19 @@ int main() {
 	// tell GLFW to call framebuffer size callback on resize
 	glfwSetFramebufferSizeCallback(w, framebuffer_size_callback);
 
+	// create perspective
+	glm::mat4 projection = glm::mat4(1.0f);
+	projection = glm::perspective(glm::radians(45.0f), (float)_WIDTH / (float)_HEIGHT, 0.1f, 100.0f); // perspective
+	shader.setMat4("projection", projection);
+
 	// render loop
 	while (!glfwWindowShouldClose(w)) {
+
+		// per-frame time logic
+		float currentFrame = glfwGetTime();
+		deltaTime = currentFrame - lastFrame;
+		lastFrame = currentFrame;
+
 		// manage input
 		processInput(w);
 		
@@ -221,17 +297,11 @@ int main() {
 		// perspective projection
 		// glm::ortho(0.0f, 800.0f, 0.0f, 600.0f, 0.1f, 100.0f); //orthographic
 
-		// move backwards
-		glm::mat4 view = glm::mat4(1.0f);
-		view = glm::translate(view, glm::vec3(0.0f, 0.0f, -3.0f));
-		// create perspective
-		glm::mat4 projection = glm::mat4(1.0f);
-		projection = glm::perspective(glm::radians(45.0f), (float)_WIDTH / (float)_HEIGHT, 0.1f, 100.0f); // perspective
-
+		// set-up camera/view matrix
+		glm::mat4 view = glm::lookAt(cameraPos, cameraPos + cameraFront, cameraUp);
 
 		// use shader functions to set uniforms
 		shader.setMat4("view", view);
-		shader.setMat4("projection", projection);
 
 		for (unsigned int i = 0; i < 10; i++)
 		{
