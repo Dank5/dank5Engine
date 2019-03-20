@@ -36,7 +36,7 @@ int main() {
 	glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
 
 	//create a new window
-	GLFWwindow* w = glfwCreateWindow(_WIDTH, _HEIGHT, "Zombie Shooter", NULL, NULL);
+	GLFWwindow* w = glfwCreateWindow(_WIDTH, _HEIGHT, "dank5 Engine", NULL, NULL);
 	//check its not null (Remember this is good practice for all dynamically allocated memory
 	//consider using nullptr instead
 	if (w == NULL) {
@@ -133,7 +133,7 @@ int main() {
 
 
 	shader.use();
-	shader.setInt("texture", 0);
+	shader.setInt("texture1", 0);
 
 	// tell GLFW to call framebuffer size callback on resize
 	glfwSetFramebufferSizeCallback(w, framebuffer_size_callback);
@@ -155,19 +155,33 @@ int main() {
         glBindTexture(GL_TEXTURE_2D, texture2);
 		
 		*/
-		// create transformations
-		glm::mat4 transform = glm::mat4(1.0f); // make sure to initialize matrix to identity matrix first
-		transform = glm::translate(transform, glm::vec3(0.5f, -0.5f, 0.0f));
-		transform = glm::rotate(transform, (float)glfwGetTime(), glm::vec3(0.0f, 0.0f, 1.0f));
 
-		//2d box made of two triangles
-		shader.use();
-
-		// get matrix's uniform location and set matrix
-		unsigned int transformLoc = glGetUniformLocation(shader.ID, "transform");
-		glUniformMatrix4fv(transformLoc, 1, GL_FALSE, glm::value_ptr(transform));
 		// bind texture on texture units
 		glBindTexture(GL_TEXTURE_2D, texture);
+
+		//2d rectangle made of two triangles
+		shader.use();
+
+		// perspective projection
+		// glm::ortho(0.0f, 800.0f, 0.0f, 600.0f, 0.1f, 100.0f); //orthographic
+
+		// create a model matrix 
+		glm::mat4 model = glm::mat4(1.0f);
+		// rotate on x-axis so it appears to be on the floor
+		model = glm::rotate(model, glm::radians(-55.0f), glm::vec3(1.0f, 0.0f, 0.0f));
+		// move backwards
+		glm::mat4 view = glm::mat4(1.0f);
+		view = glm::translate(view, glm::vec3(0.0f, 0.0f, -3.0f));
+		// create perspective
+		glm::mat4 projection = glm::mat4(1.0f);
+		projection = glm::perspective(glm::radians(45.0f), (float)_WIDTH / (float)_HEIGHT, 0.1f, 100.0f); // perspective
+
+
+		// use shader functions to set uniforms
+		shader.setMat4("model", model);
+		shader.setMat4("view", view);
+		shader.setMat4("projection", projection);
+
 		glBindVertexArray(VAO);
 		glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
 		// glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
@@ -189,4 +203,3 @@ int main() {
 	return 0;
 
 }
-
