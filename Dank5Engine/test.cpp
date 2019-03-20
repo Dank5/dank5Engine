@@ -10,10 +10,8 @@
 #include "stb_image.h"
 #include "shader.h"
 #include "camera.h"
-// consts used
 
 // settings
-
 const unsigned int _WIDTH = 800;
 const unsigned int _HEIGHT = 600;
 
@@ -99,7 +97,7 @@ int main() {
 	}
 
 	// tell opengl size of rendering window (lower left, lower left, width, height)
-	glViewport(0, 0, 800, 600);
+	glViewport(0, 0, _WIDTH, _HEIGHT);
 
 	// configure global opengl state
 	// -----------------------------
